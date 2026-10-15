@@ -1,6 +1,6 @@
 [project]
 name = "ink-nullkit"
-version = "0.1.2"
+version = "0.2.0"
 description = "Block-bootstrap comparisons and ink-free null controls for Herculaneum ink-detection models"
 requires-python = ">=3.10"
 dependencies = ["numpy", "scipy", "zarr>=3", "tifffile"]

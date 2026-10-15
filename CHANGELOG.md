@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.0
+- Added `choose_direction` and the `orientation` CLI command: label-free depth-direction choice from two models' forward and reversed maps, with block-bootstrap interval and abstention flags. Tests added.
+
 ## 0.1.2
 - README results recomputed on the official surface volumes with the official 9 um preparation (forward direction) and now include reader-v2. The earlier table came from older pooled renders in which the reversed direction was correct; that was a property of those renders, noted in the README. No code change.
 

@@ -1,4 +1,4 @@
-"""Command line: python -m nullkit.cli {null,compare,blobs} ..."""
+"""Command line: python -m nullkit.cli {null,compare,blobs,orientation} ..."""
 from __future__ import annotations
 import argparse, json
 import numpy as np
@@ -27,6 +27,8 @@ def main(argv=None):
     b = sp.add_parser("blobs", help="letter-scale blob density of a prediction TIFF in a region")
     b.add_argument("pred"); b.add_argument("region"); b.add_argument("--level", default="0"); b.add_argument("--z", type=int)
     b.add_argument("--threshold", type=float, default=0.7)
+    o = sp.add_parser("orientation", help="label-free depth-direction choice from two models run forward and reversed")
+    o.add_argument("fwd_a"); o.add_argument("fwd_b"); o.add_argument("rev_a"); o.add_argument("rev_b"); o.add_argument("--block", type=int, default=256)
     a = ap.parse_args(argv)
     if a.cmd == "null":
         import zarr
@@ -34,6 +36,9 @@ def main(argv=None):
         v = np.asarray(zarr.open(a.src, mode="r")["0"])
         g = zarr.open_group(a.dst, mode="w", zarr_format=2)
         g.create_array("0", shape=v.shape, chunks=(v.shape[0], 128, 128), dtype=np.uint8, fill_value=0)[:] = phase_randomize(v, a.seed)
+    elif a.cmd == "orientation":
+        from .orientation import choose_direction
+        print(json.dumps(choose_direction(*[_read_tif(p) for p in (a.fwd_a, a.fwd_b, a.rev_a, a.rev_b)], block=a.block), indent=1))
     elif a.cmd == "compare":
         from .bootstrap import paired_auroc_diff
         pa, pb = _read_tif(a.pred_a), _read_tif(a.pred_b)

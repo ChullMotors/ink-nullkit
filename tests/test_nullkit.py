@@ -63,3 +63,27 @@ def test_phase_null_preserves_mean_and_variance():
     w = v.copy(); w[:, :, :80] = 0
     nw = phase_randomize(w); mk = w > 0
     assert (nw[~mk] == 0).all() and abs(float(nw[mk].mean()) - float(w[mk].mean())) < 3.0 and abs(float(nw[mk].std()) / float(w[mk].std()) - 1) < 0.1
+
+
+def _orient_scene(forward_is_right, seed=0, H=1024, W=1024):
+    from nullkit import choose_direction
+    rng = np.random.default_rng(seed); sig = rng.normal(0, 1, (H, W)); sig = (sig + np.roll(sig, 1, 0) + np.roll(sig, 1, 1)) / 3
+    noise = lambda: rng.normal(0, 1, (H, W))
+    shared = lambda s: np.clip(128 + 40 * (s + 0.6 * noise()), 0, 255).astype(np.uint8)
+    junk = lambda: np.clip(128 + 40 * noise(), 0, 255).astype(np.uint8)
+    good = (shared(sig), shared(sig)); bad = (junk(), junk())
+    f, r = (good, bad) if forward_is_right else (bad, good)
+    return choose_direction(f[0], f[1], r[0], r[1], n_boot=200)
+
+
+def test_orientation_picks_agreeing_direction_both_ways():
+    a = _orient_scene(True); b = _orient_scene(False)
+    assert a["direction"] == "forward" and a["confident"] and a["margin"] > 0.2
+    assert b["direction"] == "reverse" and b["confident"] and b["margin"] < -0.2
+
+
+def test_orientation_no_signal_is_not_confident():
+    from nullkit import choose_direction
+    rng = np.random.default_rng(3); m = lambda: rng.integers(0, 255, (1024, 1024)).astype(np.uint8)
+    r = choose_direction(m(), m(), m(), m(), n_boot=200)
+    assert r["weak_agreement"] and not r["confident"]

@@ -14,6 +14,8 @@ Held-out ink evaluation sets are small. On two public held-out segments (PHerc. 
 - `nullkit.phase_randomize` / `python -m nullkit.cli null`: ink-free copy of a surface volume (same per-slice Fourier amplitudes, one shared Hermitian-symmetric random phase field, padding filled before the transform and restored after, per-slice mean and standard deviation matched). Run your model on it. Anything letter-shaped it outputs is a hallucination by construction. This is an out-of-distribution stress test, an upper bound; use a real blank-papyrus segment for a natural false-positive rate.
 - `nullkit.blob_density` / `python -m nullkit.cli blobs`: letter-scale (300 to 8000 px) connected components per megapixel of a region, with a block-bootstrap interval. Compare the density on the real region with the density on the phase null.
 
+- `nullkit.choose_direction` / `python -m nullkit.cli orientation fwd_a.tif fwd_b.tif rev_a.tif rev_b.tif`: label-free choice of depth direction. Run two independently trained models on the same surface volume forward and reversed; the direction in which their probability maps correlate more is the better candidate. Returns the margin with a block-bootstrap interval, the fraction of blocks that vote for each direction, and flags `confident` (interval excludes zero) and `weak_agreement` (best agreement below 0.5).
+
 ## Example
 
 ```bash
@@ -41,6 +43,20 @@ Inputs are the official 109-slice (0841 w00) and 118-slice (0500p2) surface volu
 Caveat: reader-v2 was trained on other segments of the 0500P2 scroll (per its published training config), so its 0500p2 column is not held out by scroll; 0841 is. AUROC vs the official labels (forward): seed 42 0.853 / 0.840, seed 43 0.891 / 0.857, reader-v2 0.904 / 0.908 (0841 / 0500p2). Equal AUROC hid large differences in null behaviour: seed 42 draws as many letter-sized blobs on ink-free data as on the real render at 0.7, seed 43 only behaves at 0.7, and reader-v2 stays low on the null at both thresholds.
 
 **Depth direction depends on the render, not just the model.** An earlier version of this table was computed on older pooled renders of the same segments where the reversed direction scored best (AUROC about 0.81 to 0.87) and forward was at chance. On the official prepared inputs the forward direction scores best and reversed is near chance (0.53 to 0.58). Always check the direction on your own render with a quick forward/reverse comparison before drawing conclusions.
+
+## Depth-direction check, measured
+
+Seed 42 vs seed 43 of `scrollprize/ink_9um`, forward vs reversed, 256 px blocks. Truth is the direction with the better AUROC against the labels (used only for validation):
+
+| render | agreement forward / reversed | margin [95% interval] | choice | truth |
+|---|---|---|---|---|
+| PHerc. 0841 w00, official surface volume | 0.715 / 0.434 | +0.28 [+0.23, +0.33] | forward | forward |
+| PHerc. 0500p2, official surface volume | 0.663 / 0.413 | +0.25 [+0.19, +0.30] | forward | forward |
+| PHerc. 0139 w035 (training corpus segment) | 0.665 / 0.410 | +0.25 [+0.22, +0.30] | forward | forward |
+| PHerc. 0841 w00, older pooled mirror render | 0.443 / 0.679 | -0.24 [-0.28, -0.19] | reverse | reverse |
+| PHerc. 0500p2, older pooled mirror render | 0.458 / 0.701 | -0.24 [-0.31, -0.18] | reverse | reverse |
+
+It chose correctly on all five, and the same segments needed opposite directions depending on which render they came from. Limits: both models come from one training recipe and corpus, so shared bias could mimic agreement; only two render conventions were available; and when agreement is weak it should abstain. On six PHerc. 0800 segments without labels it was confident on one and undecided on five, which is the intended behaviour. Agreement does not show that the structure is ink, so combine it with the null screen above.
 
 ## Limits
 
