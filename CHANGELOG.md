@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.1
+- README: abstention on ink-free nulls and a render-convention mismatch caught by the direction check. No code change.
+
 ## 0.2.0
 - Added `choose_direction` and the `orientation` CLI command: label-free depth-direction choice from two models' forward and reversed maps, with block-bootstrap interval and abstention flags. Tests added.
 

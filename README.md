@@ -56,7 +56,7 @@ Seed 42 vs seed 43 of `scrollprize/ink_9um`, forward vs reversed, 256 px blocks.
 | PHerc. 0841 w00, older pooled mirror render | 0.443 / 0.679 | -0.24 [-0.28, -0.19] | reverse | reverse |
 | PHerc. 0500p2, older pooled mirror render | 0.458 / 0.701 | -0.24 [-0.31, -0.18] | reverse | reverse |
 
-It chose correctly on all five, and the same segments needed opposite directions depending on which render they came from. Limits: both models come from one training recipe and corpus, so shared bias could mimic agreement; only two render conventions were available; and when agreement is weak it should abstain. On six PHerc. 0800 segments without labels it was confident on one and undecided on five, which is the intended behaviour. Agreement does not show that the structure is ink, so combine it with the null screen above.
+On ink-free phase nulls of the two official renders the margin is -0.002 and -0.013 with intervals including zero (abstains). On a native 9.366 um render of 0841 made with a home-made sampler it chose reverse (margin -0.15 [-0.20, -0.11]), i.e. that sampler's default normal was opposite to the official convention. It chose correctly on all five known renders, and the same segments needed opposite directions depending on which render they came from. Limits: both models come from one training recipe and corpus, so shared bias could mimic agreement; only two render conventions were available; and when agreement is weak it should abstain. On six PHerc. 0800 segments without labels it was confident on one and undecided on five, which is the intended behaviour. Agreement does not show that the structure is ink, so combine it with the null screen above.
 
 ## Limits
 
