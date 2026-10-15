@@ -22,19 +22,25 @@ python -m nullkit.cli null w00_9um.zarr w00_9um_null.zarr
 python -m nullkit.cli blobs null_prediction.tif w00_occupied_region.zarr --threshold 0.7
 ```
 
-## Measured with it (v0.1.1 null; public data; `scrollprize/ink_9um` checkpoints at step 75000, depth reversed)
+## Measured with it (v0.1.2; public data; `scrollprize/ink_9um` seeds 42/43 at step 75000 and `domenicor046/reader-v2` step 40000)
 
-Letter-sized blobs per megapixel (95% block-bootstrap interval), threshold 0.7:
+Inputs are the official 109-slice (0841 w00) and 118-slice (0500p2) surface volumes from the open-data bucket, prepared with the official `prepare_9um_isotropic_input` (level 2), forward direction, scored inside the official 20260918 supervision masks. Letter-sized blobs per megapixel (95% block-bootstrap interval) on the real render and on the ink-free phase null:
 
-| | PHerc. 0841 w00 | PHerc. 0500p2 |
-|---|---|---|
-| seed 42, real render | 7.5 [6.1, 8.9] | 5.4 [4.2, 6.8] |
-| seed 42, ink-free null | 6.3 [4.8, 7.9] | 4.4 [3.3, 5.6] |
-| seed 43, real render | 7.6 [6.3, 9.0] | 4.8 [3.6, 6.0] |
-| seed 43, ink-free null | 0.5 [0.2, 1.0] | 0.4 [0.1, 0.7] |
-| AUROC seed 42 / seed 43 vs labels | 0.812 / 0.818 | 0.869 / 0.858 |
+| threshold 0.7 | 0841 real | 0841 null | 0500p2 real | 0500p2 null |
+|---|---|---|---|---|
+| seed 42 | 6.4 [5.1, 7.7] | 7.2 [5.6, 9.0] | 5.6 [4.4, 6.9] | 6.5 [5.1, 8.1] |
+| seed 43 | 6.9 [5.7, 8.1] | 0.6 [0.2, 1.1] | 5.4 [4.1, 6.8] | 0.4 [0.1, 0.8] |
+| reader-v2 | 4.8 [3.6, 6.0] | 0.0 [0.0, 0.0] | 3.4 [2.4, 4.4] | 0.0 [0.0, 0.0] |
 
-At threshold 0.5 the ordering is not the same: seed 43 draws 16.9 (0841) and 12.7 (0500p2) blobs per megapixel on the null, seed 42 draws 6.1 and 13.7. So screen across thresholds rather than at one, and note that equal held-out AUROC hid a large difference in behaviour on the null at 0.7. A v0.1.0 table computed with a flawed null was withdrawn (see CHANGELOG).
+| threshold 0.5 | 0841 real | 0841 null | 0500p2 real | 0500p2 null |
+|---|---|---|---|---|
+| seed 42 | 13.0 | 5.8 | 12.1 | 12.4 |
+| seed 43 | 13.0 | 14.5 | 11.8 | 13.0 |
+| reader-v2 | 8.9 | 1.0 | 5.2 | 2.3 |
+
+AUROC vs the official labels (forward): seed 42 0.853 / 0.840, seed 43 0.891 / 0.857, reader-v2 0.904 / 0.908 (0841 / 0500p2). Equal AUROC hid large differences in null behaviour: seed 42 draws as many letter-sized blobs on ink-free data as on the real render at 0.7, seed 43 only behaves at 0.7, and reader-v2 stays low on the null at both thresholds.
+
+**Depth direction depends on the render, not just the model.** An earlier version of this table was computed on older pooled renders of the same segments where the reversed direction scored best (AUROC about 0.81 to 0.87) and forward was at chance. On the official prepared inputs the forward direction scores best and reversed is near chance (0.53 to 0.58). Always check the direction on your own render with a quick forward/reverse comparison before drawing conclusions.
 
 ## Limits
 
