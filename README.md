@@ -38,7 +38,7 @@ Inputs are the official 109-slice (0841 w00) and 118-slice (0500p2) surface volu
 | seed 43 | 13.0 | 14.5 | 11.8 | 13.0 |
 | reader-v2 | 8.9 | 1.0 | 5.2 | 2.3 |
 
-AUROC vs the official labels (forward): seed 42 0.853 / 0.840, seed 43 0.891 / 0.857, reader-v2 0.904 / 0.908 (0841 / 0500p2). Equal AUROC hid large differences in null behaviour: seed 42 draws as many letter-sized blobs on ink-free data as on the real render at 0.7, seed 43 only behaves at 0.7, and reader-v2 stays low on the null at both thresholds.
+Caveat: reader-v2 was trained on other segments of the 0500P2 scroll (per its published training config), so its 0500p2 column is not held out by scroll; 0841 is. AUROC vs the official labels (forward): seed 42 0.853 / 0.840, seed 43 0.891 / 0.857, reader-v2 0.904 / 0.908 (0841 / 0500p2). Equal AUROC hid large differences in null behaviour: seed 42 draws as many letter-sized blobs on ink-free data as on the real render at 0.7, seed 43 only behaves at 0.7, and reader-v2 stays low on the null at both thresholds.
 
 **Depth direction depends on the render, not just the model.** An earlier version of this table was computed on older pooled renders of the same segments where the reversed direction scored best (AUROC about 0.81 to 0.87) and forward was at chance. On the official prepared inputs the forward direction scores best and reversed is near chance (0.53 to 0.58). Always check the direction on your own render with a quick forward/reverse comparison before drawing conclusions.
 
