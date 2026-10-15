@@ -22,9 +22,19 @@ python -m nullkit.cli null w00_9um.zarr w00_9um_null.zarr
 python -m nullkit.cli blobs null_prediction.tif w00_occupied_region.zarr --threshold 0.7
 ```
 
-## Measured with it
+## Measured with it (v0.1.1 null; public data; `scrollprize/ink_9um` checkpoints at step 75000, depth reversed)
 
-Numbers are being recomputed. The first release (v0.1.0) built the null with phases that were not Hermitian-symmetric, so the null images lost power (mean intensity about half the real render). v0.1.1 fixes this: each slice keeps its mean and standard deviation inside the valid area, and tests check it. The earlier table is withdrawn until it is regenerated with the corrected null.
+Letter-sized blobs per megapixel (95% block-bootstrap interval), threshold 0.7:
+
+| | PHerc. 0841 w00 | PHerc. 0500p2 |
+|---|---|---|
+| seed 42, real render | 7.5 [6.1, 8.9] | 5.4 [4.2, 6.8] |
+| seed 42, ink-free null | 6.3 [4.8, 7.9] | 4.4 [3.3, 5.6] |
+| seed 43, real render | 7.6 [6.3, 9.0] | 4.8 [3.6, 6.0] |
+| seed 43, ink-free null | 0.5 [0.2, 1.0] | 0.4 [0.1, 0.7] |
+| AUROC seed 42 / seed 43 vs labels | 0.812 / 0.818 | 0.869 / 0.858 |
+
+At threshold 0.5 the ordering is not the same: seed 43 draws 16.9 (0841) and 12.7 (0500p2) blobs per megapixel on the null, seed 42 draws 6.1 and 13.7. So screen across thresholds rather than at one, and note that equal held-out AUROC hid a large difference in behaviour on the null at 0.7. A v0.1.0 table computed with a flawed null was withdrawn (see CHANGELOG).
 
 ## Limits
 
