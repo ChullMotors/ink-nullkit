@@ -11,7 +11,7 @@ Held-out ink evaluation sets are small. On two public held-out segments (PHerc. 
 ## Tools
 
 - `nullkit.paired_auroc_diff` / `python -m nullkit.cli compare`: paired spatial block-bootstrap interval for AUROC(a) - AUROC(b) inside a supervision mask, plus the minimum effect detectable at 80% power for that region.
-- `nullkit.phase_randomize` / `python -m nullkit.cli null`: ink-free copy of a surface volume (same per-slice Fourier amplitudes, one shared random phase field, padding restored). Run your model on it. Anything letter-shaped it outputs is a hallucination by construction. This is an out-of-distribution stress test, an upper bound; use a real blank-papyrus segment for a natural false-positive rate.
+- `nullkit.phase_randomize` / `python -m nullkit.cli null`: ink-free copy of a surface volume (same per-slice Fourier amplitudes, one shared Hermitian-symmetric random phase field, padding filled before the transform and restored after, per-slice mean and standard deviation matched). Run your model on it. Anything letter-shaped it outputs is a hallucination by construction. This is an out-of-distribution stress test, an upper bound; use a real blank-papyrus segment for a natural false-positive rate.
 - `nullkit.blob_density` / `python -m nullkit.cli blobs`: letter-scale (300 to 8000 px) connected components per megapixel of a region, with a block-bootstrap interval. Compare the density on the real region with the density on the phase null.
 
 ## Example
@@ -22,17 +22,9 @@ python -m nullkit.cli null w00_9um.zarr w00_9um_null.zarr
 python -m nullkit.cli blobs null_prediction.tif w00_occupied_region.zarr --threshold 0.7
 ```
 
-## Measured with it (public data, `scrollprize/ink_9um` checkpoints at step 75000, depth reversed)
+## Measured with it
 
-| Quantity | PHerc. 0841 w00 | PHerc. 0500p2 |
-|---|---|---|
-| Blobs per Mpx at 0.7, seed 42, real render | 7.5 [6.1, 8.9] | 5.4 [4.2, 6.8] |
-| same, seed 42, phase null (no ink) | 9.5 [7.6, 11.3] | 5.9 [4.6, 7.4] |
-| same, seed 43, real render | 7.6 [6.3, 9.0] | 4.8 [3.6, 6.0] |
-| same, seed 43, phase null (no ink) | 0.8 [0.4, 1.3] | 0.5 [0.1, 0.9] |
-| AUROC seed 42 / seed 43 vs labels | 0.812 / 0.818 | 0.869 / 0.858 |
-
-Seeds with equal held-out AUROC differ by more than ten times in hallucination rate on the null. Label-based AUROC alone cannot see this.
+Numbers are being recomputed. The first release (v0.1.0) built the null with phases that were not Hermitian-symmetric, so the null images lost power (mean intensity about half the real render). v0.1.1 fixes this: each slice keeps its mean and standard deviation inside the valid area, and tests check it. The earlier table is withdrawn until it is regenerated with the corrected null.
 
 ## Limits
 

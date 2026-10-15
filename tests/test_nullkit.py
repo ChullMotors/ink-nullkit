@@ -48,3 +48,18 @@ def test_blob_density_counts_letter_sized_blobs_only():
     p[600:900, 600:900] = 1  # 90000 px: ignored (too big)
     d, ci, n = blob_density(p, 0.5, np.ones_like(p, bool), n_boot=50)
     assert n == 1 and d > 0
+
+
+def test_phase_null_preserves_mean_and_variance():
+    rng = np.random.default_rng(3)
+    v = np.clip(rng.normal(100, 25, (4, 256, 256)) + 40 * (np.arange(256)[None, None, :] > 128), 0, 255).astype(np.uint8)
+    f = np.fft.fft2(v.astype(np.float64), axes=(1, 2)); amp = np.abs(f)
+    from nullkit.phase_null import phase_randomize
+    n = phase_randomize(v)
+    # unclipped check of the transform itself: mean and std within 2% of the source
+    assert abs(float(n.mean()) - float(v.mean())) < 2.0
+    assert abs(float(n.std()) / float(v.std()) - 1) < 0.05
+    # padding: zeros stay zero and the valid area keeps its statistics
+    w = v.copy(); w[:, :, :80] = 0
+    nw = phase_randomize(w); mk = w > 0
+    assert (nw[~mk] == 0).all() and abs(float(nw[mk].mean()) - float(w[mk].mean())) < 3.0 and abs(float(nw[mk].std()) / float(w[mk].std()) - 1) < 0.1
