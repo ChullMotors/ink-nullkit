@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.2
+- `choose_direction` now returns `decision` (forward / reverse / undecided) with minimum margin 0.1 and minimum agreement 0.5, set after a weak case (MAN5) where an interval excluding zero accompanied a tiny margin. Tests added.
+
 ## 0.2.1
 - README: abstention on ink-free nulls and a render-convention mismatch caught by the direction check. No code change.
 

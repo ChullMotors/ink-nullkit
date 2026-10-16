@@ -29,9 +29,12 @@ def _corr(s):
     return float(cov / np.sqrt(max(va * vb, 1e-18)))
 
 
-def choose_direction(fwd_a, fwd_b, rev_a, rev_b, mask=None, block=256, n_boot=1000, min_block_px=2000, seed=0):
+def choose_direction(fwd_a, fwd_b, rev_a, rev_b, mask=None, block=256, n_boot=1000, min_block_px=2000, seed=0, min_margin=0.1, min_agreement=0.5):
     """fwd_*/rev_*: 2D probability maps (uint8 or float) from model A and B in the forward and reversed direction.
-    Returns dict(direction, agreement_forward, agreement_reverse, margin, ci95, block_vote, n_blocks, confident, weak_agreement)."""
+    Returns dict(direction, decision, agreement_forward, agreement_reverse, margin, ci95, block_vote, n_blocks, confident, weak_agreement).
+    `decision` is "forward", "reverse" or "undecided": it requires the margin interval to exclude zero, |margin| >= min_margin and the
+    higher agreement >= min_agreement. min_margin and min_agreement were set after seeing weak cases (a scroll where every model scored at chance
+    gave margin -0.04 with interval excluding zero), not tuned on held-out data; known-good renders had |margin| 0.24-0.28."""
     fwd_a, fwd_b, rev_a, rev_b = (np.asarray(x) for x in (fwd_a, fwd_b, rev_a, rev_b))
     if mask is None: mask = (fwd_a > 0) | (fwd_b > 0) | (rev_a > 0) | (rev_b > 0)
     sf, sr = _block_stats(fwd_a, fwd_b, mask, block), _block_stats(rev_a, rev_b, mask, block)
@@ -42,5 +45,7 @@ def choose_direction(fwd_a, fwd_b, rev_a, rev_b, mask=None, block=256, n_boot=10
     marg = np.array([_corr(sf[i]) - _corr(sr[i]) for i in idx])
     per_f = np.array([_corr(s[None]) for s in sf]); per_r = np.array([_corr(s[None]) for s in sr])
     ci = [float(np.percentile(marg, 2.5)), float(np.percentile(marg, 97.5))]
-    return dict(direction="forward" if cf >= cr else "reverse", agreement_forward=cf, agreement_reverse=cr, margin=cf - cr, ci95=ci,
-                block_vote=float((per_f > per_r).mean()), n_blocks=int(len(sf)), confident=bool(ci[0] > 0 or ci[1] < 0), weak_agreement=bool(max(cf, cr) < 0.5))
+    direction = "forward" if cf >= cr else "reverse"; confident = bool(ci[0] > 0 or ci[1] < 0)
+    decision = direction if (confident and abs(cf - cr) >= min_margin and max(cf, cr) >= min_agreement) else "undecided"
+    return dict(direction=direction, decision=decision, agreement_forward=cf, agreement_reverse=cr, margin=cf - cr, ci95=ci,
+                block_vote=float((per_f > per_r).mean()), n_blocks=int(len(sf)), confident=confident, weak_agreement=bool(max(cf, cr) < 0.5))

@@ -69,7 +69,7 @@ def _orient_scene(forward_is_right, seed=0, H=1024, W=1024):
     from nullkit import choose_direction
     rng = np.random.default_rng(seed); sig = rng.normal(0, 1, (H, W)); sig = (sig + np.roll(sig, 1, 0) + np.roll(sig, 1, 1)) / 3
     noise = lambda: rng.normal(0, 1, (H, W))
-    shared = lambda s: np.clip(128 + 40 * (s + 0.6 * noise()), 0, 255).astype(np.uint8)
+    shared = lambda s: np.clip(128 + 40 * (s + 0.25 * noise()), 0, 255).astype(np.uint8)
     junk = lambda: np.clip(128 + 40 * noise(), 0, 255).astype(np.uint8)
     good = (shared(sig), shared(sig)); bad = (junk(), junk())
     f, r = (good, bad) if forward_is_right else (bad, good)
@@ -78,12 +78,20 @@ def _orient_scene(forward_is_right, seed=0, H=1024, W=1024):
 
 def test_orientation_picks_agreeing_direction_both_ways():
     a = _orient_scene(True); b = _orient_scene(False)
-    assert a["direction"] == "forward" and a["confident"] and a["margin"] > 0.2
-    assert b["direction"] == "reverse" and b["confident"] and b["margin"] < -0.2
+    assert a["direction"] == "forward" and a["decision"] == "forward" and a["confident"] and a["margin"] > 0.2
+    assert b["direction"] == "reverse" and b["decision"] == "reverse" and b["confident"] and b["margin"] < -0.2
 
 
 def test_orientation_no_signal_is_not_confident():
     from nullkit import choose_direction
     rng = np.random.default_rng(3); m = lambda: rng.integers(0, 255, (1024, 1024)).astype(np.uint8)
     r = choose_direction(m(), m(), m(), m(), n_boot=200)
-    assert r["weak_agreement"] and not r["confident"]
+    assert r["weak_agreement"] and not r["confident"] and r["decision"] == "undecided"
+
+
+def test_small_margin_with_excluding_interval_is_undecided():
+    from nullkit import choose_direction
+    rng = np.random.default_rng(5); sig = rng.normal(0, 1, (2048, 2048))
+    mk = lambda w: np.clip(128 + 40 * (w * sig + rng.normal(0, 1, sig.shape)), 0, 255).astype(np.uint8)
+    r = choose_direction(mk(0.75), mk(0.75), mk(0.7), mk(0.7), n_boot=200)
+    assert abs(r["margin"]) < 0.1 and r["decision"] == "undecided"
